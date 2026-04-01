@@ -1,2 +1,2 @@
 # majorProject
-this is the hotel booking project
+this is the hotel booking project.
