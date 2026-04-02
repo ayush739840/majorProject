@@ -1,7 +1,7 @@
-if(process.env.NODE_ENV != "production"){
-    require('dotenv').config();
-}
-
+// if(process.env.NODE_ENV != "production"){
+//     require('dotenv').config();
+// }
+require('dotenv').config();
 
 // console.log(process.env.SECRET);
 const express =require("express");
@@ -29,8 +29,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
 const User = require("./models/user.js");
-// const dns =require("dns");
-// dns.setServers(['1.1.1.1', '8.8.8.8']);
+const dns =require("dns");
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 main()
 .then(()=>{
     console.log("connected to db")
@@ -56,9 +56,9 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 const store = MongoStore.create({
   mongoUrl: dbUrl,
-  crypto: {
-    secret: process.env.SECRET,
-  },
+//   crypto: {
+//     secret: process.env.SECRET,
+//   },
   touchAfter: 24 * 3600,
   collectionName: "secure_sessions"
 });
@@ -117,12 +117,24 @@ app.use((req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
 
-app.use((err,req,res,next)=>{
-    let {statusCode=500,message="something went wrong!"}=err;
-     res.status(statusCode).render("listings/error.ejs",{err});
-//     console.log("ASLI ERROR YAHAN HAI:", err);
-//     res.status(statusCode).send(message);
-})
+// app.use((err,req,res,next)=>{
+//     let {statusCode=500,message="something went wrong!"}=err;
+//      res.status(statusCode).render("listings/error.ejs",{err});
+// //     console.log("ASLI ERROR YAHAN HAI:", err);
+// //     res.status(statusCode).send(message);
+// })
+app.use((err, req, res, next) => {
+    // Agar headers pehle hi send ho chuke hain, toh Express ke default handler ko do
+    if (res.headersSent) {
+        return next(err); 
+    }
+    
+    // ASLI ERROR CONSOLE MEIN PRINT KARO TAAKI HUME PATA CHALE GHALTI KAHAN HAI
+    console.log(" THE REAL ERROR IS HERE:", err.message);
+    
+    let { statusCode = 500, message = "Something went wrong!" } = err;
+    res.status(statusCode).render("listings/error.ejs", { err });
+});
 
 app.listen(port,()=>{
     console.log(`app is listening to the port ${port}`);
